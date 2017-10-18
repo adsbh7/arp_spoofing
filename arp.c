@@ -387,7 +387,7 @@ void * spoofing(void * arg)
 
 		else if(checking(recv_p, send_ip) == 3)
 		{
-			tcphdr = (struct libnet_icmpv4_hdr *)(recv_p + 14 + iphdr->ip_hl*4);
+			tcphdr = (struct libnet_tcp_hdr *)(recv_p + 14 + iphdr->ip_hl*4);
 			relay_packet(recv_p);
 			len = len + tcphdr->th_off*4;
 					
@@ -404,7 +404,7 @@ void * spoofing(void * arg)
 
 		else if(checking(recv_p, send_ip) == 4)
 		{
-			icmphdr = (struct libnet_tcp_hdr *)(recv_p + 14 + iphdr->ip_hl*4);
+			icmphdr = (struct libnet_icmpv4_hdr *)(recv_p + 14 + iphdr->ip_hl*4);
 			relay_packet(recv_p);
 			len = len + 8;			// icmp header size =8
 					
